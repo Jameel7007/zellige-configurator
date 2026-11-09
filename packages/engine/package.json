@@ -1,0 +1,11 @@
+{
+  "name": "@zellige/engine",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Zellige pattern engine: a panel as exact cut pieces, in pure JavaScript (no renderer).",
+  "type": "module",
+  "exports": { ".": { "types": "./src/index.d.ts", "default": "./src/index.js" } },
+  "files": ["src"],
+  "scripts": { "test": "node --test tests/*.test.mjs" },
+  "dependencies": { "polygon-clipping": "0.15.7" }
+}
