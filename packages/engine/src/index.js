@@ -13,7 +13,9 @@ import { resolvePalette } from './pattern/palette.js';
 import { FIELD, MEDALLION } from './config.js';
 
 export { MEDALLIONS, DEFAULT_MEDALLION } from './pattern/medallions.js';
-export { PAL, METAL, GLAZE_NAMES, resolvePalette } from './pattern/palette.js';
+export { PAL, METAL, GLAZE_NAMES, VARIATION, resolvePalette } from './pattern/palette.js';
+export { PIECE } from './config.js';
+export { stream } from './util/rand.js';
 export { checkPartition } from './pattern/cut.js';
 export { area, centroid } from './pattern/geom.js';
 

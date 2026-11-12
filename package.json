@@ -4,9 +4,17 @@
   "version": "0.1.0",
   "description": "Design a zellige panel: choose the pattern, colours and size, and get the tile count.",
   "type": "module",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
+    "dev": "npm run dev --workspace @zellige/web",
+    "build": "npm run build --workspace @zellige/web",
+    "typecheck": "npm run typecheck --workspace @zellige/web",
     "test": "npm test --workspaces --if-present"
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }

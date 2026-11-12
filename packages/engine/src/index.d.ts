@@ -69,6 +69,18 @@ export const PAL: Palette;
 export const METAL: Set<GlazeKey>;
 export const GLAZE_NAMES: Record<GlazeKey, string>;
 
+/** Per-piece glaze variation, in sRGB HSL units. */
+export const VARIATION: {
+  hue: number;
+  sat: number;
+  light: { K: number; W: number; default: number };
+  kiln: { chance: number; light: number };
+};
+/** Slab numbers, in pattern units: grout width, bevel, height, wobble. */
+export const PIECE: { GROUT: number; BEVEL: number; HEIGHT: number; WOBBLE: number };
+/** A seeded random stream, independent per name. */
+export function stream(name: string, seed?: number): () => number;
+
 export function medallionChoices(): Array<{ id: MedallionId; label: string; note: string }>;
 export function panelSpec(size?: number): PanelSpec;
 export function buildPanel(opts?: BuildOptions): Panel;
