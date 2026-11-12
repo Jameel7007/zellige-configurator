@@ -2,12 +2,12 @@
 // bed, shown in one of three settings:
 //
 //   studio  the panel alone on a table (the default: best for judging pattern and colour)
-//   wall    hung on a wall above a floor, with a figure standing beside it
-//   floor   laid flush into a floor, with a figure standing beside it
+//   wall    hung on a wall above a paved floor
+//   floor   laid flush into a paved floor
 //
 // The scene is in pattern units. A room is in metres, so the room settings need the scale
-// (centimetres per unit): the figure is always 1.7 m tall, and it is the panel that looks
-// bigger or smaller beside it when the scale changes.
+// (centimetres per unit): the paving stones are always 60 cm, and it is the panel that looks
+// bigger or smaller against them when the scale changes.
 //
 // It draws only when something changed (a new panel, a colour, the camera, the window). A
 // configurator sits open in a tab for a long time; a 60 fps loop drawing the same picture
@@ -26,7 +26,6 @@ const LOOK = {
   MORTAR: '#b3a892',
   WALL: '#ece5d8',
   FLOOR: '#b7a58c',
-  FIGURE: '#8d8478',
   BED_MARGIN: 0.9,        // mortar showing around the panel, in pattern units
   BED_DEPTH: 1.6,
   TILE_TOP: 0.3,          // a floor laid flush sits just under the tiles' faces
@@ -42,9 +41,7 @@ const LOOK = {
   PAVER_M: 0.6,           // the room's floor is paved in squares this size
   SKIRT_M: 0.09,          // height of the skirting board along the wall
   // The room, in metres.
-  FIGURE_M: 1.7,
   HANG_M: 0.3,            // gap between the floor and the bottom of a hung panel
-  STAND_M: 0.55,          // gap between the panel's edge and the figure
   ROOM_M: 40,             // walls and floors are simply large: their edges are never in view
 };
 
@@ -67,7 +64,6 @@ export class Preview {
   private paver = { value: 30 };           // pattern units per paving stone (a shader uniform)
   private floor = new THREE.Group();       // one slab (wall) or four around the panel (floor)
   private floorMaterial: THREE.MeshStandardMaterial;
-  private figure = new THREE.Group();
   private glaze: THREE.Mesh;
   private gold: THREE.Mesh;
   private mesh: PanelMesh | null = null;
@@ -146,20 +142,7 @@ export class Preview {
       this.floor.add(slab);
     }
 
-    // The figure: a turned shape like a peg doll, with no features. It is there for its
-    // height only (1.7 m), so it is drawn in metres and scaled to the room in layout().
-    const skin = matte(LOOK.FIGURE, 0.9);
-    const profile: [number, number][] = [   // [radius, height] from the floor up to the neck
-      [0, 0], [0.12, 0], [0.125, 0.03], [0.1, 0.45], [0.115, 0.8], [0.15, 1.0], [0.165, 1.2],
-      [0.19, 1.36], [0.185, 1.42], [0.12, 1.47], [0.055, 1.5], [0.05, 1.53], [0, 1.53],
-    ];
-    const body = new THREE.Mesh(new THREE.LatheGeometry(profile.map(([r, y]) => new THREE.Vector2(r, y)), 32), skin);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.105, 24, 16), skin);   // top at 1.70
-    head.position.y = 1.595;
-    for (const m of [body, head]) { m.castShadow = true; m.receiveShadow = true; }
-    this.figure.add(body, head);
-
-    this.scene.add(this.panel, this.table, this.wall, this.skirt, this.floor, this.figure);
+    this.scene.add(this.panel, this.table, this.wall, this.skirt, this.floor);
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
@@ -320,18 +303,17 @@ export class Preview {
   private layout(rescale: number) {
     const o = this.outer, half = o + LOOK.BED_MARGIN;
     const m = 100 / this.unitCm;                       // pattern units per metre
-    const room = LOOK.ROOM_M * m, figureH = LOOK.FIGURE_M * m;
+    const room = LOOK.ROOM_M * m;
     const s = this.setting;
 
     this.bed.scale.set(2 * half, LOOK.BED_DEPTH, 2 * half);
     this.bed.position.y = -LOOK.BED_DEPTH / 2;         // its top is y = 0, the bottom of the grout
     this.table.visible = s === 'studio';
-    this.wall.visible = this.skirt.visible = this.floor.visible = this.figure.visible = s !== 'studio';
+    this.wall.visible = this.skirt.visible = this.floor.visible = s !== 'studio';
     this.paver.value = LOOK.PAVER_M * m;
     const skirtH = LOOK.SKIRT_M * m, skirtD = 0.015 * m;
     this.panel.rotation.set(0, 0, 0);
     this.panel.position.set(0, 0, 0);
-    this.figure.scale.setScalar(m);
     const slabs = this.floor.children as THREE.Mesh[];
     const corners = (y: number) => [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, z]) => new THREE.Vector3(x * half, y, z * half));
 
@@ -354,12 +336,11 @@ export class Preview {
       slabs[0].position.set(0, -0.5, room / 2 - 1);
       this.skirt.scale.set(room, skirtH, skirtD);
       this.skirt.position.set(0, skirtH / 2, skirtD / 2);
-      const fx = half + LOOK.STAND_M * m;
-      this.figure.position.set(fx, 0, 0.45 * m);
-      const right = fx + 0.3 * m, top = Math.max(cy + half, figureH);
-      this.subject = [new THREE.Vector3(-half, 0, 0), new THREE.Vector3(right, 0, 0.8 * m), new THREE.Vector3(-half, top, 0), new THREE.Vector3(right, top, 0)];
-      this.centre.set((right - half) / 2, top / 2, 0);
-      this.reach = Math.max(right, top) * 1.1;
+      // Framed on the panel and the strip of floor under it.
+      const top = cy + half;
+      this.subject = [new THREE.Vector3(-half, 0, 0), new THREE.Vector3(half, 0, 0.5 * m), new THREE.Vector3(-half, top, 0), new THREE.Vector3(half, top, 0)];
+      this.centre.set(0, top / 2, 0);
+      this.reach = Math.max(half, top) * 1.1;
     } else {
       // The panel lies in the floor; four slabs around it bring the floor up flush with the tiles.
       const y = LOOK.TILE_TOP, far = room / 2;
@@ -378,13 +359,9 @@ export class Preview {
       this.wall.position.set(0, room / 2 - 1, back);
       this.skirt.scale.set(room, skirtH, skirtD);
       this.skirt.position.set(0, y + skirtH / 2, back + skirtD / 2);
-      // The figure stands level with the panel's far edge, so it is seen whole against the wall.
-      const fx = half + LOOK.STAND_M * m, fz = -half * 0.6;
-      this.figure.position.set(fx, y, fz);
-      const right = fx + 0.3 * m;
-      this.subject = [...corners(y), new THREE.Vector3(right, y, fz), new THREE.Vector3(fx, y + figureH, fz)];
-      this.centre.set((right - half) / 2, 0, 0);
-      this.reach = Math.max(right, figureH) * 1.2;
+      this.subject = corners(y);
+      this.centre.set(0, 0, 0);
+      this.reach = half * 1.5;
     }
 
     // In a room the camera stays in the room: above the floor, and in front of the wall.

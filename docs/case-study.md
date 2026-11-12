@@ -20,7 +20,7 @@ minutes, and the one they send is already counted and drawn.
 | --- | --- |
 | picks a centrepiece and a size from 7 to 16 | a panel of 4,865 to 26,604 pieces, every one a real cut shape |
 | recolours any of the eight glazes | pieces, glazed area and tiles to buy, per glaze |
-| views it on a wall or in a floor, beside a figure, and moves the sun | a one-page spec sheet with colour codes |
+| views it on a wall or in a floor, and moves the sun | a one-page spec sheet with colour codes |
 | copies a link | the exact design, reopened from the link |
 | asks for a quote | an email with the design written out, and a cut plan in SVG or DXF at real size |
 
@@ -59,8 +59,8 @@ what the customer saw. A damaged link opens the nearest valid design instead of 
 written in the customer's own mail program. The site is static files, so hosting it costs
 nothing and there is no customer data to look after.
 
-**The room is in metres.** The wall, the floor and the 1.7 m figure are drawn at real size,
-so the scale setting changes how large the panel looks beside a person. A customer can see
+**The room is in metres.** The wall and the floor are drawn at real size, with 60 cm paving stones,
+so the scale setting changes how large the panel looks in the room. A customer can see
 whether 2 m of panel suits the wall before paying for it.
 
 ## Phone and accessibility

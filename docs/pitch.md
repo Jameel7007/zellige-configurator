@@ -23,8 +23,8 @@ A good sign: their site says "custom colours available" and shows a contact form
 >
 > https://jameel7007.github.io/zellige-configurator/
 >
-> They choose the centrepiece, the size and the glazes, see it on a wall beside a person for
-> scale, and send you a quote request. You get the number of pieces per glaze, the tiles to
+> They choose the centrepiece, the size and the glazes, see it on a wall or in a floor,
+> and send you a quote request. You get the number of pieces per glaze, the tiles to
 > buy, a one-page spec sheet and a cut plan at real size.
 >
 > The demo uses my own pattern and sample prices. For you it would use your patterns, your

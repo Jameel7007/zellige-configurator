@@ -130,7 +130,7 @@ export function App() {
             />
             <button type="button" className="sun-reset" disabled={config.sun === null} onClick={() => onSun(null)} aria-label="Put the sun back" title="Put the sun back">↺</button>
           </div>
-          {config.view !== 'studio' && <span className="scale-note">Figure: 1.7 m tall</span>}
+          {config.view !== 'studio' && <span className="scale-note">Paving stones: 60 cm</span>}
         </div>
       </section>
 

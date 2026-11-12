@@ -35,9 +35,9 @@ npm run dev
 - The preview draws only when something changes, not sixty times a second.
 - The whole design lives in the address (`?size=12&medallion=lee&scale=2.5&view=wall&B=7a1f2b`), so a
   link reproduces it exactly. A broken link opens the nearest valid design.
-- The View control shows the panel alone, hung on a wall or laid in a floor, beside a figure
-  1.7 m tall, under day, evening or overcast light. The room is drawn in metres, so changing
-  the scale changes how big the panel looks beside the figure.
+- The View control shows the panel alone, hung on a wall or laid in a floor,
+  under day, evening or overcast light. The room is drawn in metres and paved in 60 cm
+  stones, so changing the scale changes how big the panel looks in it.
 - The Materials section turns the design into a bill: panel size in metres, pieces to cut and
   square tiles to buy per glaze, a cost estimate, and a CSV with one line per glaze and shape.
 
@@ -68,7 +68,7 @@ the last digit.
 
 | | |
 | --- | --- |
-| ![A panel hung on a wall in evening light, beside a figure for scale](docs/preview/room.jpg) | ![The same panel laid in a paved floor](docs/preview/floor.jpg) |
+| ![A panel hung on a wall in evening light](docs/preview/room.jpg) | ![The same panel laid in a paved floor](docs/preview/floor.jpg) |
 
 ## How the bill is worked out
 
@@ -155,7 +155,7 @@ node packages/engine/scripts/preview.mjs 12 lee panel.svg B=#7a1f2b
 1. **Engine with size, medallion and palette options** (done)
 2. **Configurator interface with a live 3D preview and a shareable link** (done)
 3. **Bill of materials: count and area per shape and glaze, wastage, price** (done)
-4. **Room view: wall and floor settings, a scale figure, three lights** (done)
+4. **Room view: wall and floor settings, three lights** (done)
 5. **Spec sheet, cut plan, quote request** (done)
 6. **Phone layout, accessibility, [case study](docs/case-study.md) and [pitch](docs/pitch.md)** (done)
 

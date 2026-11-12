@@ -67,7 +67,7 @@ export function PreviewPane({ data, palette, view, light, sun, unitCm, topInset,
     e.preventDefault();
   };
 
-  const where = view === 'studio' ? '' : ` Shown ${view === 'wall' ? 'on a wall' : 'in a floor'} beside a figure 1.7 metres tall.`;
+  const where = view === 'studio' ? '' : ` Shown ${view === 'wall' ? 'on a wall' : 'in a floor'}, in a room paved with 60 centimetre stones.`;
 
   return (
     <div className="preview">
