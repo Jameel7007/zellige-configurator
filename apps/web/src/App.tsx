@@ -5,8 +5,26 @@ import { usePanel } from './usePanel';
 import { Controls } from './components/Controls';
 import { Materials } from './components/Materials';
 import { PreviewPane, type PreviewHandle } from './components/PreviewPane';
+import { LIGHTS, LIGHT_IDS, SETTINGS, SETTING_IDS, type LightId, type SettingId } from './preview/settings';
 
 type Copied = 'idle' | 'copied' | 'failed';
+
+/** A row of radio buttons drawn as one control. Arrow keys move between the options. */
+function Segmented<T extends string>({ label, name, value, options, onChange }: {
+  label: string; name: string; value: T; options: { id: T; label: string }[]; onChange(id: T): void;
+}) {
+  return (
+    <fieldset className="segmented">
+      <legend>{label}</legend>
+      {options.map(o => (
+        <label key={o.id} className={o.id === value ? 'is-selected' : ''}>
+          <input type="radio" name={name} value={o.id} checked={o.id === value} onChange={() => onChange(o.id)} />
+          <span>{o.label}</span>
+        </label>
+      ))}
+    </fieldset>
+  );
+}
 
 export function App() {
   const [config, setConfig] = useState<Config>(() => parseConfig(window.location.search));
@@ -14,6 +32,20 @@ export function App() {
   const palette = useMemo(() => fullPalette(config), [config]);
   const preview = useRef<PreviewHandle>(null);
   const [copied, setCopied] = useState<Copied>('idle');
+
+  // The View and Light controls lie over the top of the preview (one row on a desktop, two on
+  // a phone). The preview is told how tall they are so it frames the panel clear of them.
+  const stageTop = useRef<HTMLDivElement>(null);
+  const [topInset, setTopInset] = useState(0);
+  useEffect(() => {
+    const el = stageTop.current;
+    if (!el) return;
+    const measure = () => setTopInset(el.offsetTop + el.offsetHeight);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // The address always describes the panel on screen, so it can be copied at any moment.
   // replaceState, not pushState: dragging the slider must not fill the Back button's history.
@@ -31,6 +63,8 @@ export function App() {
 
   const onSize = useCallback((size: number) => setConfig(c => ({ ...c, size })), []);
   const onScale = useCallback((unitCm: number) => setConfig(c => ({ ...c, unitCm })), []);
+  const onView = useCallback((view: SettingId) => setConfig(c => ({ ...c, view })), []);
+  const onLight = useCallback((light: LightId) => setConfig(c => ({ ...c, light })), []);
   const onMedallion = useCallback((medallion: MedallionId) => setConfig(c => ({ ...c, medallion })), []);
   const onGlaze = useCallback((key: GlazeKey, hex: string) => setConfig(c => withGlaze(c, key, hex)), []);
   const onResetGlazes = useCallback(() => setConfig(c => ({ ...c, palette: {} })), []);
@@ -63,9 +97,14 @@ export function App() {
   return (
     <div className="app">
       <main className="stage">
-        <PreviewPane ref={preview} data={data} palette={palette} busy={panel.status === 'building'} error={panel.error} />
+        <PreviewPane ref={preview} data={data} palette={palette} view={config.view} light={config.light} unitCm={config.unitCm} topInset={topInset} busy={panel.status === 'building'} error={panel.error} />
+        <div className="stage-top" ref={stageTop}>
+          <Segmented label="View" name="view" value={config.view} options={SETTING_IDS.map(id => ({ id, label: SETTINGS[id].label }))} onChange={onView} />
+          <Segmented label="Light" name="light" value={config.light} options={LIGHT_IDS.map(id => ({ id, label: LIGHTS[id].label }))} onChange={onLight} />
+        </div>
         <div className="stage-actions">
           <button type="button" onClick={() => preview.current?.resetView()}>Reset view</button>
+          {config.view !== 'studio' && <span className="scale-note">Figure: 1.7 m tall</span>}
         </div>
       </main>
 
@@ -92,7 +131,7 @@ export function App() {
             {copied === 'copied' && 'Link copied.'}
             {copied === 'failed' && 'Could not copy. The address bar has the link.'}
           </p>
-          <p className="fineprint">Demo. A room view and a printable spec sheet are still to come.</p>
+          <p className="fineprint">Demo. A printable spec sheet and a quote request are still to come.</p>
         </footer>
       </aside>
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'reac
 import type { Palette } from '@zellige/engine';
 import { Preview } from '../preview/Preview';
 import type { PanelData } from '../panel.worker';
+import type { LightId, SettingId } from '../preview/settings';
 
 export interface PreviewHandle {
   resetView(): void;
@@ -10,12 +11,17 @@ export interface PreviewHandle {
 interface Props {
   data: PanelData | null;
   palette: Palette;
+  view: SettingId;
+  light: LightId;
+  unitCm: number;
+  /** Pixels at the top of the preview covered by controls. */
+  topInset: number;
   busy: boolean;
   error: string | null;
   ref?: Ref<PreviewHandle>;
 }
 
-export function PreviewPane({ data, palette, busy, error, ref }: Props) {
+export function PreviewPane({ data, palette, view, light, unitCm, topInset, busy, error, ref }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const preview = useRef<Preview | null>(null);
   const [noWebGL, setNoWebGL] = useState(false);
@@ -34,6 +40,9 @@ export function PreviewPane({ data, palette, busy, error, ref }: Props) {
 
   // Palette first, so a new panel is painted as it arrives rather than a frame later.
   useEffect(() => { preview.current?.setPalette(palette); }, [palette]);
+  useEffect(() => { preview.current?.setTopInset(topInset); }, [topInset]);
+  useEffect(() => { preview.current?.setLight(light); }, [light]);
+  useEffect(() => { preview.current?.setRoom(view, unitCm); }, [view, unitCm]);
   useEffect(() => { if (data) preview.current?.setPanel(data.mesh, data.spec.outer); }, [data]);
 
   useImperativeHandle(ref, () => ({ resetView: () => preview.current?.resetView() }), []);
@@ -44,7 +53,7 @@ export function PreviewPane({ data, palette, busy, error, ref }: Props) {
         ref={canvas}
         className="preview-canvas"
         role="img"
-        aria-label={data ? `Three-dimensional preview of the panel: ${data.pieces.toLocaleString('en')} tiles. Drag to turn, scroll to zoom.` : 'Three-dimensional preview of the panel'}
+        aria-label={data ? `Three-dimensional preview of the panel: ${data.pieces.toLocaleString('en')} tiles. ${view === 'studio' ? '' : ` Shown ${view === 'wall' ? 'on a wall' : 'in a floor'} beside a figure 1.7 metres tall.`} Drag to turn, scroll to zoom.` : 'Three-dimensional preview of the panel'}
       />
       {noWebGL && (
         <p className="preview-note" role="alert">

@@ -38,7 +38,7 @@ body { background: var(--paper); }
 .preview-canvas:active { cursor: grabbing; }
 
 .preview-status {
-  position: absolute; left: 50%; top: 18px; transform: translateX(-50%);
+  position: absolute; left: 50%; top: 64px; transform: translateX(-50%);
   margin: 0; padding: 6px 14px; border-radius: 999px;
   background: rgba(34, 29, 25, 0.82); color: #fff; font-size: 13px;
   opacity: 0; transition: opacity 0.15s 0.12s; pointer-events: none;
@@ -49,7 +49,19 @@ body { background: var(--paper); }
   position: absolute; inset: auto 24px 24px 24px; margin: 0; padding: 12px 16px;
   background: #fff7e8; border: 1px solid #e2c98f; border-radius: var(--radius);
 }
-.stage-actions { position: absolute; left: 16px; bottom: 16px; }
+.stage-actions { position: absolute; left: 16px; bottom: 16px; display: flex; align-items: center; gap: 12px; }
+.scale-note { padding: 5px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.82); font-size: 13px; color: var(--ink-2); }
+.stage-top { position: absolute; left: 16px; top: 16px; right: 16px; display: flex; flex-wrap: wrap; gap: 10px 16px; pointer-events: none; }
+.segmented {
+  display: flex; align-items: center; margin: 0; padding: 3px; border: 1.5px solid var(--line); border-radius: 10px;
+  background: rgba(255, 255, 255, 0.9); pointer-events: auto;
+}
+.segmented legend { float: left; padding: 0 8px 0 7px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+.segmented label { position: relative; cursor: pointer; }
+.segmented input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.segmented span { display: block; padding: 6px 11px; border-radius: 7px; font-size: 14px; }
+.segmented label.is-selected span { background: var(--accent); color: var(--accent-ink); }
+.segmented label:has(input:focus-visible) span { outline: 3px solid var(--focus); outline-offset: 1px; }
 
 /* ---- side panel -------------------------------------------------------------------- */
 

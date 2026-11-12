@@ -3,8 +3,8 @@
 Design a Moroccan zellige panel: choose the pattern, the colours and the size, and get the
 tile count a workshop needs to make it.
 
-**Status: milestone 3 of 6.** The pattern engine, the configurator interface and the bill of
-materials work. A room view and a printable spec sheet are still to come.
+**Status: milestone 4 of 6.** The pattern engine, the configurator interface, the bill of
+materials and the room view work. A printable spec sheet and a quote request are still to come.
 
 ![The configurator: a 3D preview beside the centrepiece, size and glaze controls](docs/preview/configurator.jpg)
 
@@ -33,8 +33,11 @@ npm run dev
 - Changing a glaze repaints the panel without cutting it again: the mesh records which tile
   each vertex belongs to, and colour is filled in separately.
 - The preview draws only when something changes, not sixty times a second.
-- The whole design lives in the address (`?size=12&medallion=lee&scale=2.5&B=7a1f2b`), so a
+- The whole design lives in the address (`?size=12&medallion=lee&scale=2.5&view=wall&B=7a1f2b`), so a
   link reproduces it exactly. A broken link opens the nearest valid design.
+- The View control shows the panel alone, hung on a wall or laid in a floor, beside a figure
+  1.7 m tall, under day, evening or overcast light. The room is drawn in metres, so changing
+  the scale changes how big the panel looks beside the figure.
 - The Materials section turns the design into a bill: panel size in metres, pieces to cut and
   square tiles to buy per glaze, a cost estimate, and a CSV with one line per glaze and shape.
 
@@ -60,6 +63,10 @@ panel.panel.side;    // side length, in pattern units
 
 With no options, `buildPanel()` returns Rosette's panel exactly: the same 10,209 pieces, to
 the last digit.
+
+## The room view
+
+![A panel hung on a wall in evening light, beside a figure for scale](docs/preview/room.jpg)
 
 ## How the bill is worked out
 
@@ -98,6 +105,8 @@ mesh and colour code).
 
 - **Sizes are whole pattern repeats, and panels are square.** The panel edge has to fall on a
   mirror line of the field, and the border is built as one side turned four times.
+- **No fountain surround.** The room view has a wall and a floor; the fountain setting in the
+  original plan was left out.
 - **The medallion does not scale.** It is the same size on every panel, so it fills a size-7
   panel and looks small on a size-16 one.
 - **`polar` is not offered.** Its frame rings do not line up exactly and sixteen slivers have
@@ -118,7 +127,7 @@ node packages/engine/scripts/preview.mjs 12 lee panel.svg B=#7a1f2b
 1. **Engine with size, medallion and palette options** (done)
 2. **Configurator interface with a live 3D preview and a shareable link** (done)
 3. **Bill of materials: count and area per shape and glaze, wastage, price** (done)
-4. Room view
+4. **Room view: wall and floor settings, a scale figure, three lights** (done)
 5. PDF spec sheet, cut plan, quote request
 6. Phone layout, accessibility, case study
 

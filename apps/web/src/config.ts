@@ -1,6 +1,6 @@
 // What the customer has chosen, and how it travels in a link.
 //
-//   ?size=12&medallion=lee&scale=2.5&B=7a1f2b
+//   ?size=12&medallion=lee&scale=2.5&view=wall&light=evening&B=7a1f2b
 //
 // Only what differs from the default is written, so the plain address is the default panel.
 // Anything a link gets wrong (a size out of range, a medallion that does not exist, a colour
@@ -8,18 +8,23 @@
 
 import { SIZES, PAL, DEFAULT_MEDALLION, BOM_DEFAULTS, SCALES, medallionChoices, type GlazeKey, type MedallionId, type Palette } from '@zellige/engine';
 
+import { DEFAULT_LIGHT, DEFAULT_SETTING, LIGHT_IDS, SETTING_IDS, type LightId, type SettingId } from './preview/settings';
+
 export interface Config {
   size: number;
   medallion: MedallionId;
   /** Centimetres per pattern unit: one of SCALES. */
   unitCm: number;
+  /** Where the panel is shown: alone, on a wall, or in a floor. */
+  view: SettingId;
+  light: LightId;
   /** Only the glazes the customer changed. */
   palette: Partial<Palette>;
 }
 
 export const GLAZE_KEYS = Object.keys(PAL) as GlazeKey[];
 
-export const DEFAULT_CONFIG: Config = Object.freeze({ size: SIZES.default, medallion: DEFAULT_MEDALLION, unitCm: BOM_DEFAULTS.unitCm, palette: {} });
+export const DEFAULT_CONFIG: Config = Object.freeze({ size: SIZES.default, medallion: DEFAULT_MEDALLION, unitCm: BOM_DEFAULTS.unitCm, view: DEFAULT_SETTING, light: DEFAULT_LIGHT, palette: {} });
 
 const HEX = /^#?([0-9a-f]{6})$/i;
 
@@ -43,12 +48,15 @@ export function parseConfig(search: string): Config {
   // Only the scales on offer: the text must be exactly how one of them is written.
   const unitCm = SCALES.find(s => String(s) === q.get('scale')) ?? BOM_DEFAULTS.unitCm;
 
+  const view = SETTING_IDS.find(v => v === q.get('view')) ?? DEFAULT_SETTING;
+  const light = LIGHT_IDS.find(l => l === q.get('light')) ?? DEFAULT_LIGHT;
+
   const palette: Partial<Palette> = {};
   for (const key of GLAZE_KEYS) {
     const hex = normaliseHex(q.get(key));
     if (hex && hex !== PAL[key]) palette[key] = hex;
   }
-  return { size, medallion, unitCm, palette };
+  return { size, medallion, unitCm, view, light, palette };
 }
 
 /** The query string for a config, without the '?': '' for the default panel. */
@@ -57,6 +65,8 @@ export function serialiseConfig(c: Config): string {
   if (c.size !== SIZES.default) q.set('size', String(c.size));
   if (c.medallion !== DEFAULT_MEDALLION) q.set('medallion', c.medallion);
   if (c.unitCm !== BOM_DEFAULTS.unitCm && SCALES.includes(c.unitCm)) q.set('scale', String(c.unitCm));
+  if (c.view !== DEFAULT_SETTING) q.set('view', c.view);
+  if (c.light !== DEFAULT_LIGHT) q.set('light', c.light);
   for (const key of GLAZE_KEYS) {
     const hex = normaliseHex(c.palette[key]);
     if (hex && hex !== PAL[key]) q.set(key, hex.slice(1));

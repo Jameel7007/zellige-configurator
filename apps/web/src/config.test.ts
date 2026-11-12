@@ -9,9 +9,9 @@ describe('link state', () => {
   });
 
   it('round-trips every choice', () => {
-    const c = { size: 13, medallion: 'lee' as const, unitCm: 2.5, palette: { B: '#7a1f2b', A: '#c0c0c0' } };
+    const c = { size: 13, medallion: 'lee' as const, unitCm: 2.5, view: 'wall' as const, light: 'evening' as const, palette: { B: '#7a1f2b', A: '#c0c0c0' } };
     const q = serialiseConfig(c);
-    expect(q).toBe('size=13&medallion=lee&scale=2.5&B=7a1f2b&A=c0c0c0');
+    expect(q).toBe('size=13&medallion=lee&scale=2.5&view=wall&light=evening&B=7a1f2b&A=c0c0c0');
     expect(parseConfig('?' + q)).toEqual(c);
   });
 
@@ -23,6 +23,8 @@ describe('link state', () => {
     for (const bad of ['2.50', '4', '0', 'big', '-2', '2e0']) expect(parseConfig(`?scale=${bad}`).unitCm).toBe(2);
     expect(parseConfig('?scale=1.5').unitCm).toBe(1.5);
     expect(parseConfig('?scale=3').unitCm).toBe(3);
+    expect(parseConfig('?view=ceiling&light=disco')).toMatchObject({ view: 'studio', light: 'day' });
+    expect(parseConfig('?view=floor&light=overcast')).toMatchObject({ view: 'floor', light: 'overcast' });
     expect(parseConfig('?B=red&T=%23fff&Z=000000').palette).toEqual({});
   });
 
