@@ -3,8 +3,9 @@
 Design a Moroccan zellige panel: choose the pattern, the colours and the size, and get the
 tile count a workshop needs to make it.
 
-**Status: milestone 4 of 6.** The pattern engine, the configurator interface, the bill of
-materials and the room view work. A printable spec sheet and a quote request are still to come.
+**Status: milestone 5 of 6.** The pattern engine, the configurator interface, the bill of
+materials, the room view, the spec sheet, the cut plan and the quote request work. Phone polish,
+an accessibility pass and the case study are still to come.
 
 ![The configurator: a 3D preview beside the centrepiece, size and glaze controls](docs/preview/configurator.jpg)
 
@@ -98,10 +99,24 @@ For both medallions at all ten sizes (twenty panels), before grout is applied:
 - no piece is too small to survive the grout, so there are no holes in the mortar;
 - the engine reports no warnings.
 
-Run them with `npm test` (about 40 seconds: 106 engine tests, 15 for the interface's link state,
-mesh and colour code).
+Run them with `npm test` (about 40 seconds: 110 engine tests, 19 for the interface's link state,
+mesh, colour and quote code).
+
+## Taking a design to a workshop
+
+- **Spec sheet.** One page with a drawing of the panel, its size, the glazes with their colour
+  codes, the tile counts and the estimate. "Print or save as PDF" opens the browser's print
+  dialog, which does both; on paper only the sheet is printed.
+- **Cut plan.** Every piece's outline at real size in millimetres, with a group (SVG) or layer
+  (DXF) per glaze. The DXF is the R12 dialect: one closed polyline per piece.
+  `panelToSvg` and `panelToDxf` in the engine write them.
+- **Quote request.** There is no server, so nothing is sent from the page. The request is
+  written out as an email in the customer's own mail program, to a placeholder address.
 
 ## Known limits
+
+- The DXF is checked by reading it back in the tests (piece count, layers, areas). It has not
+  yet been opened in a CAD or cutting program.
 
 - **Sizes are whole pattern repeats, and panels are square.** The panel edge has to fall on a
   mirror line of the field, and the border is built as one side turned four times.
@@ -128,7 +143,7 @@ node packages/engine/scripts/preview.mjs 12 lee panel.svg B=#7a1f2b
 2. **Configurator interface with a live 3D preview and a shareable link** (done)
 3. **Bill of materials: count and area per shape and glaze, wastage, price** (done)
 4. **Room view: wall and floor settings, a scale figure, three lights** (done)
-5. PDF spec sheet, cut plan, quote request
+5. **Spec sheet, cut plan, quote request** (done)
 6. Phone layout, accessibility, case study
 
 ## Licence

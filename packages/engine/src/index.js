@@ -80,3 +80,4 @@ export function buildPanel(opts = {}) {
   if (exact) out.exact = res.exact;
   return out;
 }
+export { panelToSvg, panelToDxf } from './plan.js';

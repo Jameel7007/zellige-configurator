@@ -4,6 +4,8 @@ import { DEFAULT_CONFIG, fullPalette, parseConfig, serialiseConfig, withGlaze, w
 import { usePanel } from './usePanel';
 import { Controls } from './components/Controls';
 import { Materials } from './components/Materials';
+import { Handover } from './components/Handover';
+import { SpecSheet } from './components/SpecSheet';
 import { PreviewPane, type PreviewHandle } from './components/PreviewPane';
 import { LIGHTS, LIGHT_IDS, SETTINGS, SETTING_IDS, SUN, type LightId, type SettingId } from './preview/settings';
 
@@ -32,6 +34,12 @@ export function App() {
   const palette = useMemo(() => fullPalette(config), [config]);
   const preview = useRef<PreviewHandle>(null);
   const [copied, setCopied] = useState<Copied>('idle');
+  const [sheet, setSheet] = useState(false);
+  // The button that opened the sheet gets the focus back when it closes. It is noted here, at
+  // the click: once the sheet is up the page behind is inert and nothing in it has the focus.
+  const sheetOpener = useRef<HTMLElement | null>(null);
+  const openSheet = useCallback(() => { sheetOpener.current = document.activeElement as HTMLElement | null; setSheet(true); }, []);
+  const closeSheet = useCallback(() => { setSheet(false); window.setTimeout(() => sheetOpener.current?.focus(), 0); }, []);
 
   // The Sun slider sits with the buttons under the preview, not up here: a third row on a phone
   // covered the panel. The View and Light controls lie over the top of the preview (one row on a desktop, two on
@@ -98,8 +106,12 @@ export function App() {
   const sunAt = config.sun ?? LIGHTS[config.light].azimuth;
   const data = panel.data;
 
+  const stale = !!data && (data.size !== config.size || data.medallion !== config.medallion);
+  const showSheet = sheet && !!data && !stale;
+
   return (
-    <div className="app">
+    <>
+    <div className="app" inert={showSheet}>
       <main className="stage">
         <PreviewPane ref={preview} data={data} palette={palette} view={config.view} light={config.light} sun={config.sun} unitCm={config.unitCm} topInset={topInset} busy={panel.status === 'building'} error={panel.error} />
         <div className="stage-top" ref={stageTop}>
@@ -135,7 +147,9 @@ export function App() {
           onSize={onSize} onMedallion={onMedallion} onGlaze={onGlaze} onResetGlazes={onResetGlazes}
         />
 
-        <Materials data={data} config={config} palette={palette} stale={!!data && (data.size !== config.size || data.medallion !== config.medallion)} onScale={onScale} />
+        <Materials data={data} config={config} palette={palette} stale={stale} onScale={onScale} />
+
+        <Handover data={data} config={config} palette={palette} stale={stale} onSheet={openSheet} />
 
         <footer className="panel-foot">
           <button type="button" className="primary" onClick={copyLink}>Copy link to this design</button>
@@ -144,9 +158,11 @@ export function App() {
             {copied === 'copied' && 'Link copied.'}
             {copied === 'failed' && 'Could not copy. The address bar has the link.'}
           </p>
-          <p className="fineprint">Demo. A printable spec sheet and a quote request are still to come.</p>
+          <p className="fineprint">Demo: the prices are samples and no order is placed from this page.</p>
         </footer>
       </aside>
     </div>
+    {showSheet && data && <SpecSheet data={data} config={config} palette={palette} onClose={closeSheet} />}
+    </>
   );
 }

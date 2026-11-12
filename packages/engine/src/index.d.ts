@@ -163,3 +163,15 @@ export const SHAPE_NAMES: Record<string, string>;
 export function tallyPieces(pieces: Array<{ poly: Poly; key: GlazeKey; kind: string }>): Tally;
 export function billOfMaterials(tally: Tally, opts: BillOptions): Bill;
 export function billToCsv(bill: Bill, glazeNames?: Partial<Record<GlazeKey, string>>, colours?: Partial<Record<GlazeKey, string>>): string;
+
+// ---- cut plan ---------------------------------------------------------------------------
+
+export interface PlanOptions {
+  /** The panel's half-width with its border, in pattern units (PanelSpec.outer). */
+  outer: number;
+  unitCm?: number;
+}
+/** The pieces as a real-size SVG drawing (millimetres), one group per glaze. */
+export function panelToSvg(pieces: Array<{ poly: Poly; key: string }>, opts: PlanOptions & { palette?: Partial<Palette>; title?: string }): string;
+/** The pieces as an ASCII DXF (R12): one closed polyline per piece, a layer per glaze, millimetres. */
+export function panelToDxf(pieces: Array<{ poly: Poly; key: string }>, opts: PlanOptions): string;

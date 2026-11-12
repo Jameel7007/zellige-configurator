@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PAL, SIZES } from '@zellige/engine';
+import { billOfMaterials, buildPanel, tallyPieces, PAL as GLAZES } from '@zellige/engine';
+import { QUOTE_ADDRESS, quoteMailto } from './quote';
 import { DEFAULT_CONFIG, fullPalette, normaliseHex, parseConfig, serialiseConfig, withGlaze } from './config';
 
 describe('link state', () => {
@@ -61,5 +63,35 @@ describe('link state', () => {
     expect(fullPalette(a).T).toBe(PAL.T);
     expect(withGlaze(a, 'B', PAL.B).palette).toEqual({});
     expect(withGlaze(a, 'B', 'nonsense').palette).toEqual({});
+  });
+});
+
+describe('quote request', () => {
+  it('writes the design into an email for the customer to send', () => {
+    const panel = buildPanel();
+    const bill = billOfMaterials(tallyPieces(panel.pieces), { side: panel.panel.side });
+    const link = 'https://example.com/?size=10&B=7a1f2b';
+    const href = quoteMailto(DEFAULT_CONFIG, bill, { ...GLAZES, B: '#7a1f2b' }, link, { name: ' Amina ', notes: 'For a courtyard wall.\nBy March & no later.' });
+    expect(href.startsWith(`mailto:${QUOTE_ADDRESS}?subject=`)).toBe(true);
+    // Everything after the address is encoded: no raw spaces, line breaks or ampersands in the text.
+    const query = href.slice(href.indexOf('?') + 1);
+    expect(query).not.toMatch(/[ \r\n#]/);
+    expect(query.split('&')).toHaveLength(2);
+    const q = new URLSearchParams(query.replace(/\+/g, '%2B'));
+    expect(q.get('subject')).toBe('Quote request: zellige panel, 2.08 m square');
+    const body = q.get('body')!;
+    expect(body).toContain('Pieces to cut: 10,209');
+    expect(body).toContain('Lapis blue #7a1f2b: 392 pieces');
+    expect(body).toContain('(sample prices)');
+    expect(body).toContain(`Design: ${link}`);
+    expect(body).toContain('Notes:\r\nFor a courtyard wall.\nBy March & no later.');
+    expect(body.endsWith('Thank you,\r\nAmina')).toBe(true);
+  });
+
+  it('leaves the notes out when there are none', () => {
+    const panel = buildPanel({ size: 7 });
+    const bill = billOfMaterials(tallyPieces(panel.pieces), { side: panel.panel.side });
+    const body = new URLSearchParams(quoteMailto({ ...DEFAULT_CONFIG, size: 7 }, bill, GLAZES, 'https://example.com/', { name: 'A', notes: '  ' }).split('?')[1]).get('body')!;
+    expect(body).not.toContain('Notes:');
   });
 });

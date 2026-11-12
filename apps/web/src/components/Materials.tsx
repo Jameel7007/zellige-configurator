@@ -3,23 +3,8 @@ import { BOM_DEFAULTS, GLAZE_NAMES, SCALES, billOfMaterials, billToCsv, type Pal
 import type { Config } from '../config';
 import type { PanelData } from '../panel.worker';
 
-const int = (n: number) => n.toLocaleString('en');
-const m2 = (n: number) => n.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-/** 208 → '2.08 m'; 96.6 → '96.6 cm'. */
-const length = (cm: number) => (cm >= 100 ? `${(cm / 100).toLocaleString('en', { maximumFractionDigits: 2 })} m` : `${cm.toLocaleString('en', { maximumFractionDigits: 1 })} cm`);
-const cm1 = (n: number) => n.toLocaleString('en', { maximumFractionDigits: 1 });
-
-/** Hand the customer a file. The address is released once the browser has taken it. */
-function saveFile(name: string, text: string, type: string) {
-  const url = URL.createObjectURL(new Blob([text], { type }));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
+import { cm1, int, length, m2 } from '../format';
+import { saveFile } from '../plan';
 
 interface Props {
   data: PanelData | null;
