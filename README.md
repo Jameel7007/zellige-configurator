@@ -3,9 +3,8 @@
 Design a Moroccan zellige panel: choose the pattern, the colours and the size, and get the
 tile count a workshop needs to make it.
 
-**Status: milestone 5 of 6.** The pattern engine, the configurator interface, the bill of
-materials, the room view, the spec sheet, the cut plan and the quote request work. Phone polish,
-an accessibility pass and the case study are still to come.
+**Status: all six milestones done.** Read the [case study](docs/case-study.md) for what it
+does and why it is built this way.
 
 ![The configurator: a 3D preview beside the centrepiece, size and glaze controls](docs/preview/configurator.jpg)
 
@@ -67,7 +66,9 @@ the last digit.
 
 ## The room view
 
-![A panel hung on a wall in evening light, beside a figure for scale](docs/preview/room.jpg)
+| | |
+| --- | --- |
+| ![A panel hung on a wall in evening light, beside a figure for scale](docs/preview/room.jpg) | ![The same panel laid in a paved floor](docs/preview/floor.jpg) |
 
 ## How the bill is worked out
 
@@ -113,7 +114,19 @@ mesh, colour and quote code).
 - **Quote request.** There is no server, so nothing is sent from the page. The request is
   written out as an email in the customer's own mail program, to a placeholder address.
 
+## Phone and keyboard
+
+- Under 820 px wide the preview stays at the top of the screen and its controls (view, light,
+  sun) become the first rows of the page under it. On a touch screen every control is at
+  least 44 px.
+- The preview takes the keyboard: arrow keys turn it, plus and minus zoom, Home puts it back.
+- The spec sheet is a dialog: the page behind is inert, Escape closes it, and focus goes back
+  to the button that opened it.
+
 ## Known limits
+
+- The phone layout and the keyboard were checked in a desktop browser. No real phone and no
+  screen reader has been tried yet.
 
 - The DXF is checked by reading it back in the tests (piece count, layers, areas). It has not
   yet been opened in a CAD or cutting program.
@@ -144,7 +157,7 @@ node packages/engine/scripts/preview.mjs 12 lee panel.svg B=#7a1f2b
 3. **Bill of materials: count and area per shape and glaze, wastage, price** (done)
 4. **Room view: wall and floor settings, a scale figure, three lights** (done)
 5. **Spec sheet, cut plan, quote request** (done)
-6. Phone layout, accessibility, case study
+6. **Phone layout, accessibility, [case study](docs/case-study.md) and [pitch](docs/pitch.md)** (done)
 
 ## Licence
 

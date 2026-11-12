@@ -49,7 +49,8 @@ export function App() {
   useEffect(() => {
     const el = stageTop.current;
     if (!el) return;
-    const measure = () => setTopInset(el.offsetTop + el.offsetHeight);
+    // On a phone the controls sit under the preview, not over it, and cover nothing.
+    const measure = () => setTopInset(getComputedStyle(el).position === 'absolute' ? el.offsetTop + el.offsetHeight : 0);
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
@@ -111,8 +112,8 @@ export function App() {
 
   return (
     <>
-    <div className="app" inert={showSheet}>
-      <main className="stage">
+    <main className="app" inert={showSheet}>
+      <section className="stage" aria-label="Preview">
         <PreviewPane ref={preview} data={data} palette={palette} view={config.view} light={config.light} sun={config.sun} unitCm={config.unitCm} topInset={topInset} busy={panel.status === 'building'} error={panel.error} />
         <div className="stage-top" ref={stageTop}>
           <Segmented label="View" name="view" value={config.view} options={SETTING_IDS.map(id => ({ id, label: SETTINGS[id].label }))} onChange={onView} />
@@ -131,11 +132,11 @@ export function App() {
           </div>
           {config.view !== 'studio' && <span className="scale-note">Figure: 1.7 m tall</span>}
         </div>
-      </main>
+      </section>
 
-      <aside className="panel" aria-label="Design your panel">
+      <section className="panel" aria-labelledby="app-title">
         <header className="panel-head">
-          <h1>Zellige configurator</h1>
+          <h1 id="app-title">Zellige configurator</h1>
           <p>Choose a centrepiece, a size and your glazes. Every tile is cut to shape as you go.</p>
         </header>
 
@@ -160,8 +161,8 @@ export function App() {
           </p>
           <p className="fineprint">Demo: the prices are samples and no order is placed from this page.</p>
         </footer>
-      </aside>
-    </div>
+      </section>
+    </main>
     {showSheet && data && <SpecSheet data={data} config={config} palette={palette} onClose={closeSheet} />}
     </>
   );

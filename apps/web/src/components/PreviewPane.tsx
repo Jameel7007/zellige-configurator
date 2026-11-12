@@ -1,4 +1,4 @@
-import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react';
+import { useEffect, useImperativeHandle, useRef, useState, type KeyboardEvent, type Ref } from 'react';
 import type { Palette } from '@zellige/engine';
 import { Preview } from '../preview/Preview';
 import type { PanelData } from '../panel.worker';
@@ -50,14 +50,38 @@ export function PreviewPane({ data, palette, view, light, sun, unitCm, topInset,
 
   useImperativeHandle(ref, () => ({ resetView: () => preview.current?.resetView() }), []);
 
+  // The same moves as the mouse, for a keyboard: arrows turn, plus and minus zoom, Home puts it back.
+  const onKey = (e: KeyboardEvent<HTMLCanvasElement>) => {
+    const p = preview.current;
+    if (!p || e.altKey || e.ctrlKey || e.metaKey) return;
+    switch (e.key) {
+      case 'ArrowLeft': p.orbit(-10, 0); break;
+      case 'ArrowRight': p.orbit(10, 0); break;
+      case 'ArrowUp': p.orbit(0, -6); break;
+      case 'ArrowDown': p.orbit(0, 6); break;
+      case '+': case '=': p.zoom(0.87); break;
+      case '-': case '_': p.zoom(1 / 0.87); break;
+      case 'Home': case '0': p.resetView(); break;
+      default: return;
+    }
+    e.preventDefault();
+  };
+
+  const where = view === 'studio' ? '' : ` Shown ${view === 'wall' ? 'on a wall' : 'in a floor'} beside a figure 1.7 metres tall.`;
+
   return (
     <div className="preview">
       <canvas
         ref={canvas}
         className="preview-canvas"
-        role="img"
-        aria-label={data ? `Three-dimensional preview of the panel: ${data.pieces.toLocaleString('en')} tiles. ${view === 'studio' ? '' : ` Shown ${view === 'wall' ? 'on a wall' : 'in a floor'} beside a figure 1.7 metres tall.`} Drag to turn, scroll to zoom.` : 'Three-dimensional preview of the panel'}
+        tabIndex={noWebGL ? -1 : 0}
+        role="application"
+        aria-roledescription="3D preview"
+        aria-label={data ? `Preview of the panel: ${data.pieces.toLocaleString('en')} tiles.${where}` : 'Preview of the panel'}
+        aria-describedby="preview-keys"
+        onKeyDown={onKey}
       />
+      <p id="preview-keys" className="visually-hidden">Drag or use the arrow keys to turn it, scroll or press plus and minus to zoom, press Home to put it back.</p>
       {noWebGL && (
         <p className="preview-note" role="alert">
           This browser cannot show the 3D preview (WebGL is unavailable). The tile counts on this page are still correct.

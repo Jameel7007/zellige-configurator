@@ -211,14 +211,15 @@ button.link:disabled { color: var(--ink-2); text-decoration: none; }
 .quote label small { font-weight: 400; color: var(--ink-2); }
 .quote input, .quote textarea { font: inherit; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; color: inherit; resize: vertical; }
 .quote-actions { margin-top: 4px; }
+.quote ::placeholder { color: var(--ink-2); opacity: 1; }
 
 .sheet { position: fixed; inset: 0; z-index: 10; overflow-y: auto; background: rgba(34, 29, 25, 0.55); padding: 0 16px 32px; }
 .sheet:focus { outline: none; }
 .sheet-bar {
   position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
-  max-width: 210mm; margin: 0 auto 12px; padding: 12px 0;
+  margin: 0 -16px 12px; padding: 10px 16px; justify-content: center; background: #2b2622;
 }
-.sheet-bar .hint { margin: 0; padding: 4px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.9); }
+.sheet-bar .hint { margin: 0; color: #f1ede5; }
 .sheet-page {
   max-width: 210mm; margin: 0 auto; padding: 14mm; box-sizing: border-box;
   background: #fff; color: #1d1a17; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35); font-size: 13px; line-height: 1.45;
@@ -248,6 +249,7 @@ html.sheet-open, html.sheet-open body { overflow: hidden; }
 
 @media (max-width: 640px) {
   .sheet { padding: 0 8px 24px; }
+  .sheet-bar { margin: 0 -8px 12px; padding: 10px 8px; justify-content: flex-start; }
   .sheet-page { padding: 16px; }
   .sheet-top { grid-template-columns: 1fr; }
 }
@@ -270,12 +272,48 @@ html.sheet-open, html.sheet-open body { overflow: hidden; }
 
 /* ---- phone: preview on top, controls below ------------------------------------------ */
 
+/* The preview stays at the top of the screen while the page scrolls under it. Its controls
+   (view, light, sun) come out from over the picture and become the first rows of the page,
+   so the whole of the small preview shows the panel. */
 @media (max-width: 820px) {
   html, body, #root { height: auto; }
   .app { display: block; }
-  .stage { position: sticky; top: 0; z-index: 1; height: 52vh; height: 52svh; min-height: 280px; border-bottom: 1px solid var(--line); }
+  .stage { display: contents; }
+  .preview {
+    position: sticky; top: 0; inset: 0 auto auto; z-index: 2; height: 46vh; height: 46svh; min-height: 260px;
+    border-bottom: 1px solid var(--line);
+    background: radial-gradient(120% 90% at 50% 35%, #f8f5ef 0%, var(--paper) 55%, #ddd6c9 100%);
+  }
+  .preview-status { top: 12px; }
+  .stage-top, .stage-actions { position: static; padding: 12px 16px 0; background: var(--paper-2); pointer-events: auto; }
+  .stage-top { gap: 10px; }
+  .stage-top .segmented { flex: 1 1 100%; }
+  .stage-top .segmented label { flex: 1 1 0; text-align: center; }
+  .segmented legend { min-width: 58px; }
+  .stage-actions .sun { flex: 1 1 180px; min-width: 0; }
+  .sun input { flex: 1 1 auto; width: auto; min-width: 0; }
+  .segmented, .sun { background: #fff; }
   .panel { border-left: 0; overflow: visible; padding: 20px 16px 28px; }
   .panel-head h1 { font-size: 22px; }
+}
+
+/* Fingers: nothing to press is under 44 px. */
+@media (pointer: coarse) {
+  .segmented span { padding: 12px 11px; }
+  .sun input, .slider input { height: 44px; }
+  .stage-actions .sun-reset, .glaze-reset { width: 44px; height: 44px; }
+  .glaze { grid-template-columns: 44px minmax(0, 1fr) auto 44px; }
+  .glaze input[type='color'] { width: 44px; height: 44px; }
+  .stage-actions button, .panel-foot button, .handover button, .sheet-bar button, .materials-actions button { min-height: 44px; }
+  .scale select { min-height: 44px; }
+  button.link { min-height: 44px; padding: 0 4px; }
+  .quote input, .quote textarea { font-size: 16px; }   /* under 16 px, iOS zooms the page on focus */
+}
+
+/* Windows high-contrast mode drops backgrounds: mark the chosen option with an outline. */
+@media (forced-colors: active) {
+  .segmented label.is-selected span, .card.is-selected { outline: 2px solid Highlight; outline-offset: -2px; }
+  .chip, .glaze input[type='color'] { forced-color-adjust: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

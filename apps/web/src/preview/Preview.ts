@@ -245,6 +245,30 @@ export class Preview {
     this.invalidate();
   }
 
+  /** Turn the camera from the keyboard: degrees round the panel, and degrees up or down. */
+  orbit(round: number, tilt: number) {
+    if (!this.outer) return;
+    const c = this.controls, t = c.target;
+    const s = new THREE.Spherical().setFromVector3(this.camera.position.clone().sub(t));
+    s.theta = Math.min(c.maxAzimuthAngle, Math.max(c.minAzimuthAngle, s.theta + deg(round)));
+    s.phi = Math.min(c.maxPolarAngle, Math.max(Math.max(0.02, c.minPolarAngle), s.phi + deg(tilt)));
+    this.camera.position.setFromSpherical(s).add(t);
+    this.moved = true;
+    c.update();
+    this.invalidate();
+  }
+
+  /** Move the camera nearer (k < 1) or further (k > 1), within the same limits as the wheel. */
+  zoom(k: number) {
+    if (!this.outer) return;
+    const c = this.controls, offset = this.camera.position.clone().sub(c.target);
+    offset.setLength(Math.min(c.maxDistance, Math.max(c.minDistance, offset.length() * k)));
+    this.camera.position.copy(c.target).add(offset);
+    this.moved = true;
+    c.update();
+    this.invalidate();
+  }
+
   dispose() {
     this.disposed = true;
     cancelAnimationFrame(this.frame);
