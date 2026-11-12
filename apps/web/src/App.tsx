@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { GlazeKey, MedallionId } from '@zellige/engine';
-import { DEFAULT_CONFIG, fullPalette, parseConfig, serialiseConfig, withGlaze, type Config } from './config';
+import { DEFAULT_CONFIG, fullPalette, parseConfig, serialiseConfig, withGlaze, withSun, type Config } from './config';
 import { usePanel } from './usePanel';
 import { Controls } from './components/Controls';
 import { Materials } from './components/Materials';
 import { PreviewPane, type PreviewHandle } from './components/PreviewPane';
-import { LIGHTS, LIGHT_IDS, SETTINGS, SETTING_IDS, type LightId, type SettingId } from './preview/settings';
+import { LIGHTS, LIGHT_IDS, SETTINGS, SETTING_IDS, SUN, type LightId, type SettingId } from './preview/settings';
 
 type Copied = 'idle' | 'copied' | 'failed';
 
@@ -33,7 +33,8 @@ export function App() {
   const preview = useRef<PreviewHandle>(null);
   const [copied, setCopied] = useState<Copied>('idle');
 
-  // The View and Light controls lie over the top of the preview (one row on a desktop, two on
+  // The Sun slider sits with the buttons under the preview, not up here: a third row on a phone
+  // covered the panel. The View and Light controls lie over the top of the preview (one row on a desktop, two on
   // a phone). The preview is told how tall they are so it frames the panel clear of them.
   const stageTop = useRef<HTMLDivElement>(null);
   const [topInset, setTopInset] = useState(0);
@@ -64,7 +65,9 @@ export function App() {
   const onSize = useCallback((size: number) => setConfig(c => ({ ...c, size })), []);
   const onScale = useCallback((unitCm: number) => setConfig(c => ({ ...c, unitCm })), []);
   const onView = useCallback((view: SettingId) => setConfig(c => ({ ...c, view })), []);
-  const onLight = useCallback((light: LightId) => setConfig(c => ({ ...c, light })), []);
+  // A sun the customer has placed stays put when the light changes; one they have not follows the light.
+  const onLight = useCallback((light: LightId) => setConfig(c => ({ ...c, light, sun: withSun(light, c.sun) })), []);
+  const onSun = useCallback((sun: number | null) => setConfig(c => ({ ...c, sun: withSun(c.light, sun) })), []);
   const onMedallion = useCallback((medallion: MedallionId) => setConfig(c => ({ ...c, medallion })), []);
   const onGlaze = useCallback((key: GlazeKey, hex: string) => setConfig(c => withGlaze(c, key, hex)), []);
   const onResetGlazes = useCallback(() => setConfig(c => ({ ...c, palette: {} })), []);
@@ -92,18 +95,28 @@ export function App() {
   };
 
   const isDefault = query === '';
+  const sunAt = config.sun ?? LIGHTS[config.light].azimuth;
   const data = panel.data;
 
   return (
     <div className="app">
       <main className="stage">
-        <PreviewPane ref={preview} data={data} palette={palette} view={config.view} light={config.light} unitCm={config.unitCm} topInset={topInset} busy={panel.status === 'building'} error={panel.error} />
+        <PreviewPane ref={preview} data={data} palette={palette} view={config.view} light={config.light} sun={config.sun} unitCm={config.unitCm} topInset={topInset} busy={panel.status === 'building'} error={panel.error} />
         <div className="stage-top" ref={stageTop}>
           <Segmented label="View" name="view" value={config.view} options={SETTING_IDS.map(id => ({ id, label: SETTINGS[id].label }))} onChange={onView} />
           <Segmented label="Light" name="light" value={config.light} options={LIGHT_IDS.map(id => ({ id, label: LIGHTS[id].label }))} onChange={onLight} />
         </div>
         <div className="stage-actions">
           <button type="button" onClick={() => preview.current?.resetView()}>Reset view</button>
+          <div className="sun" role="group" aria-label="Sun position">
+            <label htmlFor="sun">Sun</label>
+            <input
+              id="sun" type="range" min={SUN.min} max={SUN.max} step={SUN.step} value={sunAt}
+              onChange={e => onSun(Number(e.target.value))}
+              aria-valuetext={sunAt === 0 ? 'Straight in front' : `${Math.abs(sunAt)} degrees to the ${sunAt < 0 ? 'left' : 'right'}`}
+            />
+            <button type="button" className="sun-reset" disabled={config.sun === null} onClick={() => onSun(null)} aria-label="Put the sun back" title="Put the sun back">↺</button>
+          </div>
           {config.view !== 'studio' && <span className="scale-note">Figure: 1.7 m tall</span>}
         </div>
       </main>

@@ -9,9 +9,9 @@ describe('link state', () => {
   });
 
   it('round-trips every choice', () => {
-    const c = { size: 13, medallion: 'lee' as const, unitCm: 2.5, view: 'wall' as const, light: 'evening' as const, palette: { B: '#7a1f2b', A: '#c0c0c0' } };
+    const c = { size: 13, medallion: 'lee' as const, unitCm: 2.5, view: 'wall' as const, light: 'evening' as const, sun: 40, palette: { B: '#7a1f2b', A: '#c0c0c0' } };
     const q = serialiseConfig(c);
-    expect(q).toBe('size=13&medallion=lee&scale=2.5&view=wall&light=evening&B=7a1f2b&A=c0c0c0');
+    expect(q).toBe('size=13&medallion=lee&scale=2.5&view=wall&light=evening&sun=40&B=7a1f2b&A=c0c0c0');
     expect(parseConfig('?' + q)).toEqual(c);
   });
 
@@ -26,6 +26,19 @@ describe('link state', () => {
     expect(parseConfig('?view=ceiling&light=disco')).toMatchObject({ view: 'studio', light: 'day' });
     expect(parseConfig('?view=floor&light=overcast')).toMatchObject({ view: 'floor', light: 'overcast' });
     expect(parseConfig('?B=red&T=%23fff&Z=000000').palette).toEqual({});
+  });
+
+  it('the sun angle is kept to the slider, and its resting place is not written', () => {
+    expect(parseConfig('?sun=40').sun).toBe(40);
+    expect(parseConfig('?sun=-200').sun).toBe(-80);
+    expect(parseConfig('?sun=43').sun).toBe(45);
+    expect(parseConfig('?sun=-2').sun).toBe(0);
+    for (const bad of ['east', '1.5', '', '4e1']) expect(parseConfig(`?sun=${bad}`).sun).toBeNull();
+    // Day rests at -35 and evening at -60: the same angle is a choice under one and not the other.
+    expect(parseConfig('?sun=-35').sun).toBeNull();
+    expect(parseConfig('?light=evening&sun=-35').sun).toBe(-35);
+    expect(serialiseConfig({ ...DEFAULT_CONFIG, sun: -35 })).toBe('');
+    expect(serialiseConfig({ ...DEFAULT_CONFIG, sun: 0 })).toBe('sun=0');
   });
 
   it('the held-back medallion cannot be reached by a link', () => {

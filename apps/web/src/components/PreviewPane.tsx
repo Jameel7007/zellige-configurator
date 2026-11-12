@@ -13,6 +13,8 @@ interface Props {
   palette: Palette;
   view: SettingId;
   light: LightId;
+  /** Sun angle the customer chose, or null for the light's own. */
+  sun: number | null;
   unitCm: number;
   /** Pixels at the top of the preview covered by controls. */
   topInset: number;
@@ -21,7 +23,7 @@ interface Props {
   ref?: Ref<PreviewHandle>;
 }
 
-export function PreviewPane({ data, palette, view, light, unitCm, topInset, busy, error, ref }: Props) {
+export function PreviewPane({ data, palette, view, light, sun, unitCm, topInset, busy, error, ref }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const preview = useRef<Preview | null>(null);
   const [noWebGL, setNoWebGL] = useState(false);
@@ -42,6 +44,7 @@ export function PreviewPane({ data, palette, view, light, unitCm, topInset, busy
   useEffect(() => { preview.current?.setPalette(palette); }, [palette]);
   useEffect(() => { preview.current?.setTopInset(topInset); }, [topInset]);
   useEffect(() => { preview.current?.setLight(light); }, [light]);
+  useEffect(() => { preview.current?.setSun(sun); }, [sun]);
   useEffect(() => { preview.current?.setRoom(view, unitCm); }, [view, unitCm]);
   useEffect(() => { if (data) preview.current?.setPanel(data.mesh, data.spec.outer); }, [data]);
 

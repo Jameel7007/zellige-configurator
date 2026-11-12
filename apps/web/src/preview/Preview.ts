@@ -19,7 +19,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import type { Palette } from '@zellige/engine';
 import { pieceColours, vertexColours } from '../mesh/colour';
 import type { MeshPart, PanelMesh } from '../mesh/panelMesh';
-import { LIGHTS, SETTINGS, type LightId, type SettingId } from './settings';
+import { LIGHTS, SETTINGS, sunDirection, type LightId, type SettingId } from './settings';
 
 const LOOK = {
   FOV: 32,
@@ -33,8 +33,14 @@ const LOOK = {
   FILL: 0.9,              // share of the view the subject may fill at rest
   MAX_RATIO: 2,
   MAX_PIXELS: 5e6,        // the drawing buffer never exceeds this (Rosette measured why)
-  GLAZE: { roughness: 0.26, metalness: 0, envMapIntensity: 0.7 },
-  GOLD: { roughness: 0.32, metalness: 1, envMapIntensity: 1.4 },
+  // Glaze is glass: smooth enough for a clear highlight (the lean of each face, mesh/panelMesh.ts,
+  // is what spreads those highlights across the panel).
+  // The room's reflection is kept low: at 0.7 a low camera saw mostly milky reflection and
+  // the dark glazes went pale. The sun's own highlight is what should catch the eye.
+  GLAZE: { roughness: 0.18, metalness: 0, envMapIntensity: 0.38 },
+  GOLD: { roughness: 0.3, metalness: 1, envMapIntensity: 1.4 },
+  PAVER_M: 0.6,           // the room's floor is paved in squares this size
+  SKIRT_M: 0.09,          // height of the skirting board along the wall
   // The room, in metres.
   FIGURE_M: 1.7,
   HANG_M: 0.3,            // gap between the floor and the bottom of a hung panel
@@ -57,6 +63,8 @@ export class Preview {
   private bed: THREE.Mesh;
   private table: THREE.Mesh;               // studio: an invisible table that only takes the shadow
   private wall: THREE.Mesh;
+  private skirt: THREE.Mesh;
+  private paver = { value: 30 };           // pattern units per paving stone (a shader uniform)
   private floor = new THREE.Group();       // one slab (wall) or four around the panel (floor)
   private floorMaterial: THREE.MeshStandardMaterial;
   private figure = new THREE.Group();
@@ -68,6 +76,7 @@ export class Preview {
   private outer = 0;
   private setting: SettingId = 'studio';
   private light: LightId = 'day';
+  private sunAzimuth: number | null = null;
   private unitCm = 2;
   /** What the resting camera frames, and where it looks. Set by layout(). */
   private subject: THREE.Vector3[] = [];
@@ -103,7 +112,7 @@ export class Preview {
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
     this.sun.shadow.normalBias = 0.03;
-    this.sun.shadow.radius = 2;
+    this.sun.shadow.radius = 3;
     this.scene.add(this.hemi, this.sun, this.sun.target);
 
     // Since r163 a material that only inherits scene.environment ignores its own
@@ -127,7 +136,10 @@ export class Preview {
 
     this.wall = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), matte(LOOK.WALL));
     this.wall.receiveShadow = true;
-    this.floorMaterial = matte(LOOK.FLOOR, 0.8);
+    this.skirt = new THREE.Mesh(box, matte('#f4efe6', 0.7));
+    this.skirt.castShadow = this.skirt.receiveShadow = true;
+    this.floorMaterial = matte(LOOK.FLOOR, 0.62);
+    this.pave(this.floorMaterial);
     for (let i = 0; i < 4; i++) {
       const slab = new THREE.Mesh(box, this.floorMaterial);
       slab.receiveShadow = true;
@@ -147,7 +159,7 @@ export class Preview {
     for (const m of [body, head]) { m.castShadow = true; m.receiveShadow = true; }
     this.figure.add(body, head);
 
-    this.scene.add(this.panel, this.table, this.wall, this.floor, this.figure);
+    this.scene.add(this.panel, this.table, this.wall, this.skirt, this.floor, this.figure);
 
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
@@ -210,6 +222,14 @@ export class Preview {
     if (light === this.light) return;
     this.light = light;
     this.applyLight();
+    this.invalidate();
+  }
+
+  /** Move the sun round the panel: degrees from straight on, or null for the light's own place. */
+  setSun(azimuth: number | null) {
+    if (azimuth === this.sunAzimuth) return;
+    this.sunAzimuth = azimuth;
+    if (this.outer) this.placeSun();
     this.invalidate();
   }
 
@@ -282,7 +302,9 @@ export class Preview {
     this.bed.scale.set(2 * half, LOOK.BED_DEPTH, 2 * half);
     this.bed.position.y = -LOOK.BED_DEPTH / 2;         // its top is y = 0, the bottom of the grout
     this.table.visible = s === 'studio';
-    this.wall.visible = this.floor.visible = this.figure.visible = s !== 'studio';
+    this.wall.visible = this.skirt.visible = this.floor.visible = this.figure.visible = s !== 'studio';
+    this.paver.value = LOOK.PAVER_M * m;
+    const skirtH = LOOK.SKIRT_M * m, skirtD = 0.015 * m;
     this.panel.rotation.set(0, 0, 0);
     this.panel.position.set(0, 0, 0);
     this.figure.scale.setScalar(m);
@@ -306,6 +328,8 @@ export class Preview {
       slabs.forEach((b, i) => { b.visible = i === 0; });
       slabs[0].scale.set(room, 1, room);
       slabs[0].position.set(0, -0.5, room / 2 - 1);
+      this.skirt.scale.set(room, skirtH, skirtD);
+      this.skirt.position.set(0, skirtH / 2, skirtD / 2);
       const fx = half + LOOK.STAND_M * m;
       this.figure.position.set(fx, 0, 0.45 * m);
       const right = fx + 0.3 * m, top = Math.max(cy + half, figureH);
@@ -328,10 +352,13 @@ export class Preview {
       this.wall.scale.set(room, room, 1);
       this.wall.rotation.set(0, 0, 0);
       this.wall.position.set(0, room / 2 - 1, back);
-      const fx = half + LOOK.STAND_M * m;
-      this.figure.position.set(fx, y, -half * 0.35);
+      this.skirt.scale.set(room, skirtH, skirtD);
+      this.skirt.position.set(0, y + skirtH / 2, back + skirtD / 2);
+      // The figure stands level with the panel's far edge, so it is seen whole against the wall.
+      const fx = half + LOOK.STAND_M * m, fz = -half * 0.6;
+      this.figure.position.set(fx, y, fz);
       const right = fx + 0.3 * m;
-      this.subject = [...corners(y), new THREE.Vector3(right, y, 0), new THREE.Vector3(fx, y + figureH, -half * 0.35)];
+      this.subject = [...corners(y), new THREE.Vector3(right, y, fz), new THREE.Vector3(fx, y + figureH, fz)];
       this.centre.set((right - half) / 2, 0, 0);
       this.reach = Math.max(right, figureH) * 1.2;
     }
@@ -349,6 +376,36 @@ export class Preview {
     this.invalidate();
   }
 
+  /**
+   * Draw paving on a material: square stones with a thin dark joint, each stone a slightly
+   * different tone. It is worked out from each pixel's position in the room, not from a
+   * texture, so the four slabs around a floor panel line up with no seams and the stones
+   * stay 60 cm whatever the scale.
+   */
+  private pave(material: THREE.MeshStandardMaterial) {
+    const insert = (src: string, anchor: string, code: string) => {
+      if (!src.includes(anchor)) throw new Error(`Preview: shader anchor not found: ${anchor}`);
+      return src.replace(anchor, `${anchor}\n${code}`);
+    };
+    material.onBeforeCompile = shader => {
+      shader.uniforms.uPaver = this.paver;
+      shader.vertexShader = insert(insert(shader.vertexShader, '#include <common>', 'varying vec3 vRoomPos;'),
+        '#include <project_vertex>', 'vRoomPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      shader.fragmentShader = insert(insert(shader.fragmentShader, '#include <common>', 'varying vec3 vRoomPos;\nuniform float uPaver;'),
+        '#include <color_fragment>', `
+        {
+          vec2 st = vRoomPos.xz / uPaver + 0.5;
+          vec2 cell = floor(st), f = abs(fract(st) - 0.5);
+          float edge = 0.5 - max(f.x, f.y);                        // 0 on a joint, 0.5 at a stone's centre
+          float w = max(fwidth(st.x), fwidth(st.y));
+          float joint = 1.0 - smoothstep(0.006, 0.006 + 1.5 * w, edge);
+          joint *= 1.0 - smoothstep(0.02, 0.2, w);                   // fade out where stones are a few pixels wide
+          float tone = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
+          diffuseColor.rgb *= mix(0.94, 1.05, tone) * (1.0 - 0.45 * joint);
+        }`);
+    };
+  }
+
   private applyLight() {
     const l = LIGHTS[this.light];
     this.sun.color.set(l.sun);
@@ -357,16 +414,20 @@ export class Preview {
     this.hemi.groundColor.set(l.ground);
     this.hemi.intensity = l.skyIntensity;
     this.renderer.toneMappingExposure = l.exposure;
+    this.sun.shadow.intensity = l.shadow;
+    (this.glaze.material as THREE.MeshStandardMaterial).envMapIntensity = LOOK.GLAZE.envMapIntensity * l.reflect;
+    (this.gold.material as THREE.MeshStandardMaterial).envMapIntensity = LOOK.GOLD.envMapIntensity * l.reflect;
     this.canvas.dataset.light = this.light;
     if (this.outer) this.placeSun();
   }
 
   /** The sun shines from the light's direction onto the subject; its shadow box covers it. */
   private placeSun() {
-    const [x, y, z] = LIGHTS[this.light].from;
+    const [x, y, z] = sunDirection(this.light, this.sunAzimuth);
+    this.canvas.dataset.sun = String(this.sunAzimuth ?? LIGHTS[this.light].azimuth);
     const r = this.reach;
     this.sun.target.position.copy(this.centre);
-    this.sun.position.set(x, y, z).normalize().multiplyScalar(r * 3).add(this.centre);
+    this.sun.position.set(x, y, z).multiplyScalar(r * 3).add(this.centre);
     const cam = this.sun.shadow.camera;
     cam.left = cam.bottom = -r * 1.6;
     cam.right = cam.top = r * 1.6;

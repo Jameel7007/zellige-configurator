@@ -54,6 +54,22 @@ describe('panel mesh', () => {
     expect(again.glaze.position).toEqual(mesh.glaze.position);
   });
 
+  it('faces lean a little, each piece its own way, and normals stay unit length', () => {
+    for (const [part, max] of [[mesh.glaze, 0.05], [mesh.gold, 0.16]] as const) {
+      const leans = new Map<number, string>();
+      for (let v = 0; v < part.pieceId.length; v++) {
+        const x = part.normal[v * 3], y = part.normal[v * 3 + 1], z = part.normal[v * 3 + 2];
+        expect(Math.hypot(x, y, z)).toBeCloseTo(1, 5);
+        // A top-face vertex: nearly straight up, off by no more than the lean.
+        if (y > 0.985) {
+          expect(Math.hypot(x, z) / y).toBeLessThanOrEqual(max * Math.SQRT2 + 1e-4);
+          leans.set(part.pieceId[v], `${x.toFixed(4)},${z.toFixed(4)}`);
+        }
+      }
+      expect(new Set(leans.values()).size).toBeGreaterThan(leans.size * 0.9);
+    }
+  });
+
   it('lists every buffer for transfer, once', () => {
     const t = transferables(mesh);
     expect(t.length).toBe(10);

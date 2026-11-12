@@ -13,7 +13,15 @@ import { buildSlabs, type SlabItem } from './extrude.js';
 export const KEY_ORDER: GlazeKey[] = ['W', 'K', 'B', 'T', 'G', 'O', 'R', 'A'];
 
 /** Hand-laid look: how much each piece's height and bedding depth vary (Rosette's ranges). */
-const LOOK = { SY: [0.88, 1.12], YB: [-0.03, -0.06], BEVEL_STRAP: 0.035 } as const;
+const LOOK = {
+  SY: [0.88, 1.12], YB: [-0.03, -0.06], BEVEL_STRAP: 0.035,
+  // How far each piece's face leans from flat, as a slope (0.05 ≈ 3°). Hand-set tiles are never
+  // quite level, and that is what makes zellige glitter: each face throws the light back at
+  // its own angle, so highlights come and go piece by piece as the light or the eye moves.
+  // Only the shading leans (the normals); the slabs themselves stay flat in the bed. Gold
+  // leans more, as Rosette found: a spread of angles is what makes it read as metal.
+  TILT: 0.05, TILT_GOLD: 0.16,
+} as const;
 
 export interface MeshPart {
   position: Float32Array;
@@ -41,7 +49,9 @@ export function buildPanelMesh(pieces: Piece[], seed?: number): PanelMesh {
   const rand = stream('pieces', seed);
   const N = pieces.length;
   const keys = new Uint8Array(N), jitter = new Float32Array(N * 3);
-  const sy = new Float32Array(N), yb = new Float32Array(N);
+  const sy = new Float32Array(N), yb = new Float32Array(N), tilt = new Float32Array(N * 2);
+  // Its own stream, so adding the lean did not reshuffle any piece's colour or height.
+  const lean = stream('tilt', seed);
   const glazeItems: SlabItem[] = [], goldItems: SlabItem[] = [];
   const sym = (a: number) => (rand() * 2 - 1) * a;
 
@@ -63,6 +73,10 @@ export function buildPanelMesh(pieces: Piece[], seed?: number): PanelMesh {
     if (!metal && kilnRoll < VARIATION.kiln.chance) dl += (kilnDarker ? -1 : 1) * VARIATION.kiln.light * (0.6 + 0.4 * kilnSize);
     jitter[i * 3] = dh; jitter[i * 3 + 1] = ds; jitter[i * 3 + 2] = dl;
 
+    const t = metal ? LOOK.TILT_GOLD : LOOK.TILT;
+    tilt[i * 2] = (lean() * 2 - 1) * t;
+    tilt[i * 2 + 1] = (lean() * 2 - 1) * t;
+
     const item = { poly: p.poly, id: i, bevel: p.kind === 'strap' ? LOOK.BEVEL_STRAP : undefined };
     (metal ? goldItems : glazeItems).push(item);
   }
@@ -75,6 +89,13 @@ export function buildPanelMesh(pieces: Piece[], seed?: number): PanelMesh {
     for (let v = 0; v < s.vertices; v++) {
       const id = s.pieceId[v];
       s.position[v * 3 + 1] = s.position[v * 3 + 1] * sy[id] + yb[id];
+      // Lean the normal by how much it faces up: the top leans fully, the bevel partly, the
+      // sides not at all.
+      const nx = s.normal[v * 3], ny = s.normal[v * 3 + 1], nz = s.normal[v * 3 + 2];
+      if (ny > 0) {
+        const x = nx + tilt[id * 2] * ny, z = nz + tilt[id * 2 + 1] * ny, len = Math.hypot(x, ny, z);
+        s.normal[v * 3] = x / len; s.normal[v * 3 + 1] = ny / len; s.normal[v * 3 + 2] = z / len;
+      }
     }
     return { position: s.position, normal: s.normal, pieceId: s.pieceId, index: s.index };
   };
