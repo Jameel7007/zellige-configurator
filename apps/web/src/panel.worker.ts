@@ -1,7 +1,7 @@
 // Cuts a panel off the main thread: the pattern (engine), then the slabs (mesh). Half a second
 // to a couple of seconds of work that would otherwise freeze the page on every size change.
 
-import { buildPanel, type MedallionId, type PanelSpec } from '@zellige/engine';
+import { buildPanel, tallyPieces, type MedallionId, type PanelSpec, type Tally } from '@zellige/engine';
 import { buildPanelMesh, transferables, type PanelMesh } from './mesh/panelMesh';
 
 export interface BuildRequest {
@@ -15,6 +15,8 @@ export interface PanelData {
   medallion: MedallionId;
   spec: PanelSpec;
   mesh: PanelMesh;
+  /** Counts and areas by glaze and shape, for the bill of materials. */
+  tally: Tally;
   /** Tiles per glaze key. */
   byKey: Record<string, number>;
   pieces: number;
@@ -35,7 +37,7 @@ self.onmessage = (e: MessageEvent<BuildRequest>) => {
     const panel = buildPanel({ size, medallion });
     const mesh = buildPanelMesh(panel.pieces);
     const data: PanelData = {
-      size, medallion, spec: panel.panel, mesh,
+      size, medallion, spec: panel.panel, mesh, tally: tallyPieces(panel.pieces),
       byKey: panel.stats.byKey, pieces: panel.pieces.length,
       ms: Math.round(performance.now() - t0),
     };

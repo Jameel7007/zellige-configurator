@@ -118,6 +118,40 @@ body { background: var(--paper); }
 .glaze-reset:disabled { opacity: 0; cursor: default; }
 .row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 
+/* ---- materials ------------------------------------------------------------------------ */
+
+.materials { display: flex; flex-direction: column; gap: 12px; }
+.materials h2 {
+  margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2);
+}
+.scale { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.scale select {
+  font: inherit; padding: 7px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink);
+}
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+.fact { padding: 10px 12px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
+.fact dt { font-size: 12px; color: var(--ink-2); }
+.fact dd { margin: 2px 0 0; font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.fact dd small { font-size: 12px; font-weight: 400; color: var(--ink-2); }
+.table-wrap { overflow-x: auto; }
+.bill { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.bill caption { text-align: left; padding-bottom: 6px; color: var(--ink-2); }
+.bill th, .bill td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.bill th:first-child, .bill td:first-child { text-align: left; padding-left: 0; }
+.bill thead th { font-weight: 600; color: var(--ink-2); vertical-align: bottom; white-space: normal; }
+.bill tfoot td, .bill tfoot th { font-weight: 650; border-bottom: 0; }
+.chip { display: inline-block; width: 11px; height: 11px; margin-right: 7px; border-radius: 3px; border: 1px solid rgba(0, 0, 0, 0.18); vertical-align: -1px; }
+.estimate { margin: 0; padding: 12px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
+.estimate-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; font-weight: 650; }
+.estimate dl { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; margin: 0; font-variant-numeric: tabular-nums; }
+.estimate dt { color: var(--ink-2); }
+.estimate dd { margin: 0; text-align: right; }
+.estimate .total { padding-top: 6px; margin-top: 3px; border-top: 1px solid var(--line); color: var(--ink); font-weight: 650; font-size: 16px; }
+.tag-sample { background: #fbe9c8; color: #6b4a0b; }
+.materials-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.materials-actions button { padding: 8px 12px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; cursor: pointer; white-space: nowrap; }
+.materials-actions button:hover:not(:disabled) { border-color: var(--ink-2); }
+
 /* ---- buttons ----------------------------------------------------------------------- */
 
 button { font: inherit; color: inherit; }

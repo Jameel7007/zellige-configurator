@@ -101,3 +101,65 @@ export function checkPartition(
   overlapArea: number;
   invalid: number[];
 };
+
+// ---- bill of materials ------------------------------------------------------------------
+
+export interface Tally {
+  /** By glaze and shape; areas in square pattern units. */
+  rows: Array<{ key: GlazeKey; kind: string; count: number; area: number }>;
+  pieces: number;
+  area: number;
+}
+
+export interface Prices {
+  currency: string;
+  sample?: boolean;
+  /** Per source tile, by glaze. */
+  tile: Record<GlazeKey, number>;
+  cutPerPiece: number;
+  setPerM2: number;
+}
+
+export interface BillOptions {
+  /** The panel's side in pattern units (PanelSpec.side). */
+  side: number;
+  unitCm?: number;
+  wastage?: number;
+  tileCm?: number;
+  /** null: no money. Omitted: SAMPLE_PRICES. */
+  prices?: Prices | null;
+}
+
+export interface BillShape {
+  kind: string;
+  name: string;
+  count: number;
+  areaM2: number;
+  avgCm2: number;
+}
+
+export interface BillGlaze {
+  key: GlazeKey;
+  count: number;
+  areaM2: number;
+  buyAreaM2: number;
+  sourceTiles: number;
+  tileCost?: number;
+  shapes: BillShape[];
+}
+
+export interface Bill {
+  panel: { sideCm: number; areaM2: number };
+  assumptions: { unitCm: number; wastage: number; tileCm: number };
+  glazes: BillGlaze[];
+  totals: { pieces: number; tileAreaM2: number; buyAreaM2: number; sourceTiles: number; groutAreaM2: number; cover: number };
+  cost: { currency: string; sample: boolean; tiles: number; cutting: number; setting: number; total: number } | null;
+}
+
+export const BOM_DEFAULTS: Readonly<{ unitCm: number; wastage: number; tileCm: number }>;
+export const SCALES: readonly number[];
+export const SAMPLE_PRICES: Readonly<Prices>;
+export const SHAPE_NAMES: Record<string, string>;
+export function tallyPieces(pieces: Array<{ poly: Poly; key: GlazeKey; kind: string }>): Tally;
+export function billOfMaterials(tally: Tally, opts: BillOptions): Bill;
+export function billToCsv(bill: Bill, glazeNames?: Partial<Record<GlazeKey, string>>, colours?: Partial<Record<GlazeKey, string>>): string;

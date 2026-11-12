@@ -9,9 +9,9 @@ describe('link state', () => {
   });
 
   it('round-trips every choice', () => {
-    const c = { size: 13, medallion: 'lee' as const, palette: { B: '#7a1f2b', A: '#c0c0c0' } };
+    const c = { size: 13, medallion: 'lee' as const, unitCm: 2.5, palette: { B: '#7a1f2b', A: '#c0c0c0' } };
     const q = serialiseConfig(c);
-    expect(q).toBe('size=13&medallion=lee&B=7a1f2b&A=c0c0c0');
+    expect(q).toBe('size=13&medallion=lee&scale=2.5&B=7a1f2b&A=c0c0c0');
     expect(parseConfig('?' + q)).toEqual(c);
   });
 
@@ -20,6 +20,9 @@ describe('link state', () => {
     expect(parseConfig('?size=1').size).toBe(SIZES.min);
     for (const bad of ['ten', '10.5', '-3', '', '1e1']) expect(parseConfig(`?size=${bad}`).size).toBe(SIZES.default);
     expect(parseConfig('?medallion=nope').medallion).toBe('moorish');
+    for (const bad of ['2.50', '4', '0', 'big', '-2', '2e0']) expect(parseConfig(`?scale=${bad}`).unitCm).toBe(2);
+    expect(parseConfig('?scale=1.5').unitCm).toBe(1.5);
+    expect(parseConfig('?scale=3').unitCm).toBe(3);
     expect(parseConfig('?B=red&T=%23fff&Z=000000').palette).toEqual({});
   });
 

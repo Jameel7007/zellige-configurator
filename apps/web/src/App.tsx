@@ -3,6 +3,7 @@ import type { GlazeKey, MedallionId } from '@zellige/engine';
 import { DEFAULT_CONFIG, fullPalette, parseConfig, serialiseConfig, withGlaze, type Config } from './config';
 import { usePanel } from './usePanel';
 import { Controls } from './components/Controls';
+import { Materials } from './components/Materials';
 import { PreviewPane, type PreviewHandle } from './components/PreviewPane';
 
 type Copied = 'idle' | 'copied' | 'failed';
@@ -29,6 +30,7 @@ export function App() {
   }, [copied]);
 
   const onSize = useCallback((size: number) => setConfig(c => ({ ...c, size })), []);
+  const onScale = useCallback((unitCm: number) => setConfig(c => ({ ...c, unitCm })), []);
   const onMedallion = useCallback((medallion: MedallionId) => setConfig(c => ({ ...c, medallion })), []);
   const onGlaze = useCallback((key: GlazeKey, hex: string) => setConfig(c => withGlaze(c, key, hex)), []);
   const onResetGlazes = useCallback(() => setConfig(c => ({ ...c, palette: {} })), []);
@@ -81,6 +83,8 @@ export function App() {
           onSize={onSize} onMedallion={onMedallion} onGlaze={onGlaze} onResetGlazes={onResetGlazes}
         />
 
+        <Materials data={data} config={config} palette={palette} stale={!!data && (data.size !== config.size || data.medallion !== config.medallion)} onScale={onScale} />
+
         <footer className="panel-foot">
           <button type="button" className="primary" onClick={copyLink}>Copy link to this design</button>
           <button type="button" disabled={isDefault} onClick={() => setConfig(DEFAULT_CONFIG)}>Start over</button>
@@ -88,7 +92,7 @@ export function App() {
             {copied === 'copied' && 'Link copied.'}
             {copied === 'failed' && 'Could not copy. The address bar has the link.'}
           </p>
-          <p className="fineprint">Demo. Sizes in centimetres, prices and a spec sheet are still to come.</p>
+          <p className="fineprint">Demo. A room view and a printable spec sheet are still to come.</p>
         </footer>
       </aside>
     </div>

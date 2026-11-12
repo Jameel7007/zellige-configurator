@@ -17,6 +17,7 @@ export { PAL, METAL, GLAZE_NAMES, VARIATION, resolvePalette } from './pattern/pa
 export { PIECE } from './config.js';
 export { stream } from './util/rand.js';
 export { checkPartition } from './pattern/cut.js';
+export { tallyPieces, billOfMaterials, billToCsv, BOM_DEFAULTS, SCALES, SAMPLE_PRICES, SHAPE_NAMES } from './bom.js';
 export { area, centroid } from './pattern/geom.js';
 
 /** Width of the border around the field, in pattern units. */
