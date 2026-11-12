@@ -1,7 +1,8 @@
 name: CI
 on:
+  # Pushes to main are checked by the Pages workflow, which runs the same steps before publishing.
   push:
-    branches: [main]
+    branches-ignore: [main]
   pull_request:
 jobs:
   test:

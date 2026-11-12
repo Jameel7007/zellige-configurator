@@ -3,7 +3,7 @@
 Design a Moroccan zellige panel: choose the pattern, the colours and the size, and get the
 tile count a workshop needs to make it.
 
-**Status: all six milestones done.** Read the [case study](docs/case-study.md) for what it
+**[Try it live](https://jameel7007.github.io/zellige-configurator/).** All six milestones are done. Read the [case study](docs/case-study.md) for what it
 does and why it is built this way.
 
 ![The configurator: a 3D preview beside the centrepiece, size and glaze controls](docs/preview/configurator.jpg)

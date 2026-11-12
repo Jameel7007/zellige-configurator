@@ -1,7 +1,7 @@
 # Pitch
 
 A draft to send to tile makers and tile shops. Nothing here has been sent. The parts in
-[square brackets] need filling in first; the demo link needs the site to be public.
+[square brackets] need filling in first.
 
 ## Who to send it to
 
@@ -21,7 +21,7 @@ A good sign: their site says "custom colours available" and shows a contact form
 > I build 3D tools for the web. I made a demo that I think fits [workshop]: a page where a
 > customer designs a zellige panel and you receive the tile count.
 >
-> [link to the demo]
+> https://jameel7007.github.io/zellige-configurator/
 >
 > They choose the centrepiece, the size and the glazes, see it on a wall beside a person for
 > scale, and send you a quote request. You get the number of pieces per glaze, the tiles to
@@ -69,7 +69,6 @@ with no server and no customer database.
 
 ## Before sending
 
-1. Make the repository public and put the demo on a live address.
-2. Open it on a real phone.
-3. Open a DXF in a CAD program (LibreCAD is free) and confirm the pieces and layers.
-4. Decide the stage 1 fee.
+1. Open the live demo on a real phone.
+2. Open a DXF in a CAD program (LibreCAD is free) and confirm the pieces and layers.
+3. Decide the stage 1 fee.
